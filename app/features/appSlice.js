@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  state: 2,
+  userName: null,
+  havePermissions: false,
 };
 
 export const appSlice = createSlice({
@@ -13,10 +14,16 @@ export const appSlice = createSlice({
         ...state,
       };
     },
+    setUsername: (state, userName) => {
+      state.userName = userName.payload;
+    },
+    setHavePermissions: (state, havePermissions) => {
+      state.havePermissions = havePermissions.payload;
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const {} = appSlice.actions;
+export const { setUsername, setHavePermissions } = appSlice.actions;
 
 export default appSlice.reducer;
