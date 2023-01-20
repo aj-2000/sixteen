@@ -9,7 +9,7 @@ const appPersistConfig = {
 };
 const appPersisitedReducer = persistReducer(appPersistConfig, appReducer);
 const rootReducer = combineReducers({
-  app: appPersisitedReducer,
+  app: appReducer,
 });
 
 export const store = configureStore({
