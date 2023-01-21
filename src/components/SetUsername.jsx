@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { generateUsername } from "unique-username-generator";
-import appSlice, {
+import {
   setHavePermissions,
   setIsAudioAvailable,
   setIsScreenAvailable,
   setIsVideoAvailable,
   setUsername,
 } from "../app/features/appSlice";
-import { useSocket } from "../providers/Socket";
 const SetUsername = () => {
   const userNameRef = useRef(null);
   const localVideoRef = useRef(null);

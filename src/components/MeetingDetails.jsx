@@ -1,14 +1,26 @@
 import React from "react";
 import { MdCancel } from "react-icons/md";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { toggleMeetingDetailsBox } from "../app/features/appSlice";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { FiCopy } from "react-icons/fi";
-import { showToast } from "../App";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+// function to show toast with given message
+export const showToast = (message) =>
+  toast(message, {
+    position: "bottom-left",
+    autoClose: 2000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "dark",
+  });
 const MeetingDetails = () => {
   const dispatch = useDispatch();
-  const app = useSelector((state) => state.app);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center m-2 text-white">
@@ -38,6 +50,20 @@ const MeetingDetails = () => {
           </button>
         </CopyToClipboard>
       </div>
+      {/* display "Meeting link copied" message */}
+      <ToastContainer
+        position="bottom-left"
+        autoClose={2000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        closeButton={<div></div>}
+        theme="dark"
+      />
     </div>
   );
 };

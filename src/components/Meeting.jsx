@@ -23,8 +23,11 @@ let socket = null;
 let socketId = null;
 let connections = {};
 const MeetingScreen = () => {
+  // app variable to read app object from redux store
   const app = useSelector((state) => state.app);
+  // getting url or path or meeting id or room id from URL
   const { url } = useParams();
+  // used to insert local video stream to local video box
   const localVideoRef = useRef();
   const [isVideoOn, setIsVideoOn] = useStateWithCallbackLazy(
     app.isVideoAvailable
@@ -33,30 +36,44 @@ const MeetingScreen = () => {
     app.isVideoAvailable
   );
   const [isScreenOn, setIsScreenOn] = useStateWithCallbackLazy(false);
+  // redux dispatcher for executing functions that modify redux states
   const dispatch = useDispatch();
+  //adding event listeners with callback
   const connectToSocketServer = () => {
     try {
       socket = io.connect(server_url, { secure: true });
+      // adding signal event listener
       socket.on("signal", gotMessageFromServer);
+
       socket.on("connect", () => {
+        // sends userInformation to server then server sends the new user info to all other participants
         socket.emit("join-call", { path: url, userName: app.userName });
+        // setting socketId to global variable
         socketId = socket.id;
+        // setting socketId to redux variable
         dispatch(setSocketId(socket.id));
+        // adding chat-message event listener
         socket.on("chat-message", addMessage);
+        // adding user-left event listener
         socket.on("user-left", (id) => {
           let videobox = document.getElementById(id);
           let main = document.getElementById("main");
+          // remove left user video box from DIV element with id "main" element
           main.removeChild(videobox);
+          // delete participant from participants arary
           dispatch(removePaticipant(id));
         });
         socket.on("user-joined", (id, clients, users) => {
+          // setting socketID to userName map (users object)
           dispatch(setUsers(users));
+          // setting array of socketID of participants
           dispatch(setParticipants(clients));
           if (app.users && app.users[id]) showToast(`${app.users[id]} joined`);
           clients.forEach((socketListId) => {
             connections[socketListId] = new RTCPeerConnection(
               peerConnectionConfig
             );
+            //create new webRTC connection whenever a new user joins the call
             connections[socketListId].onicecandidate = (event) => {
               if (event.candidate !== null) {
                 socket.emit(
@@ -66,15 +83,17 @@ const MeetingScreen = () => {
                 );
               }
             };
-
+            // create video box to show video stream of new participant of call
             connections[socketListId].onaddstream = (event) => {
               var searchVideo = document.querySelector(
                 `[data-socket="${socketListId}"]`
               );
 
               if (searchVideo !== null) {
+                // if video box already exists just insert the stream
                 searchVideo.srcObject = event.stream;
               } else {
+                //creating video box and stream to it
                 let main = document.getElementById("main");
                 let video = document.createElement("video");
                 let div = document.createElement("div");
@@ -98,14 +117,13 @@ const MeetingScreen = () => {
               window.localStream !== undefined &&
               window.localStream !== null
             ) {
+              //if stream is not null send the stream
               connections[socketListId].addStream(window.localStream);
             } else {
+              //if stream is null create a new blank stream and send it
               let blackSilence = (...args) =>
                 new MediaStream([this.black(...args), this.silence()]);
               window.localStream = blackSilence();
-              connectionsStore.connections[socketListId].addStream(
-                window.localStream
-              );
             }
           });
           if (id === socketId) {
@@ -115,7 +133,7 @@ const MeetingScreen = () => {
               try {
                 connections[id2].addStream(window.localStream);
               } catch (e) {}
-
+              // creating webRTC connection
               connections[id2].createOffer().then((description) => {
                 connections[id2]
                   .setLocalDescription(description)
@@ -138,16 +156,23 @@ const MeetingScreen = () => {
   };
   const handleEndCall = () => {
     try {
+      // turn off local video
       let tracks = this.localVideoref.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
+    // move to home screen
     window.location.href = "/";
   };
   useEffect(() => {
+    // get User Media (webcam video and microphone)
     getMedia(isVideoOn, isAudioOn);
+    // connect to server and initialize the socket object
     connectToSocketServer();
   }, []);
   const getMedia = (isVideoOn, isAudioOn) => {
+    // atleast video or audio should be true to ask browser for streams
     if (isAudioOn || isVideoOn) {
       navigator.mediaDevices
         .getUserMedia({
@@ -158,9 +183,9 @@ const MeetingScreen = () => {
         .catch((e) => console.log(e));
     }
   };
+  // this function called on "signal" event to exchange webRTC offers information
   const gotMessageFromServer = (fromId, message) => {
     var signal = JSON.parse(message);
-
     if (fromId !== app.socketId) {
       if (signal.sdp) {
         connections[fromId]
@@ -196,13 +221,15 @@ const MeetingScreen = () => {
       }
     }
   };
-
+  // this function called on "chat-message" event and add new messages to messages array and increase newMessages counter
   const addMessage = (data, sender, socketIdSender) => {
     dispatch(addNewMessage({ sender, data, socketIdSender, date: moment() }));
     if (socketIdSender !== socketId) {
       dispatch(incNewMessages());
     }
   };
+
+  // this function sends to all client using webRTC, whatever stream is available.
   const getUserMediaSuccess = (stream) => {
     try {
       window.localStream.getTracks().forEach((track) => track.stop());
@@ -217,7 +244,7 @@ const MeetingScreen = () => {
       if (id === socketId) continue;
 
       connections[id].addStream(window.localStream);
-
+      // creating offer for webRTC connection
       connections[id].createOffer().then((description) => {
         connections[id]
           .setLocalDescription(description)
@@ -247,7 +274,7 @@ const MeetingScreen = () => {
               } catch (e) {
                 console.log(e);
               }
-
+              // if some stream is ended (i.e. when we turn off camera and audio) - creates a dummy blank stream
               let blackSilence = (...args) =>
                 new MediaStream([black(...args), silence()]);
               window.localStream = blackSilence();
@@ -279,6 +306,7 @@ const MeetingScreen = () => {
 
   // screen sharing
   const getDislayMedia = (isScreenOn) => {
+    // if browser supports screen sharing
     if (navigator.mediaDevices.getDisplayMedia) {
       if (isScreenOn) {
         navigator.mediaDevices
@@ -295,6 +323,7 @@ const MeetingScreen = () => {
 
   const getDislayMediaSuccess = (stream) => {
     if (stream) {
+      // if we get display stream turn off webcam video and microphoe audio as we supports only one stream sharing
       setIsAudioOn(false);
       setIsVideoOn(false);
     }
@@ -307,7 +336,7 @@ const MeetingScreen = () => {
 
     window.localStream = stream;
     localVideoRef.current.srcObject = stream;
-
+    // sends screen share stream to all clients using webRTC
     for (let id in connections) {
       if (id === socketId) continue;
 
@@ -342,7 +371,7 @@ const MeetingScreen = () => {
                 } catch (e) {
                   console.log(e);
                 }
-
+                // if screen stream is ended, creates a dummy blank stream
                 let blackSilence = (...args) =>
                   new MediaStream([this.black(...args), this.silence()]);
                 window.localStream = blackSilence();
@@ -354,7 +383,7 @@ const MeetingScreen = () => {
           })
       );
   };
-
+  // mutes the audio
   const silence = () => {
     let ctx = new AudioContext();
     let oscillator = ctx.createOscillator();
@@ -363,6 +392,7 @@ const MeetingScreen = () => {
     ctx.resume();
     return Object.assign(dst.stream.getAudioTracks()[0], { enabled: false });
   };
+  // disable video
   const black = ({ width = 640, height = 480 } = {}) => {
     let canvas = Object.assign(document.createElement("canvas"), {
       width,
@@ -372,22 +402,25 @@ const MeetingScreen = () => {
     let stream = canvas.captureStream();
     return Object.assign(stream.getVideoTracks()[0], { enabled: false });
   };
-
+  // toggle video
   const handleVideo = () => {
     setIsVideoOn(!isVideoOn, () => {
       getMedia(!isVideoOn, isAudioOn);
     });
   };
+  // toggle audio
   const handleAudio = () => {
     setIsAudioOn(!isAudioOn, () => {
       getMedia(isVideoOn, !isAudioOn);
     });
   };
+  // toggle screen share
   const handleScreen = () => {
     setIsScreenOn(!isScreenOn, () => {
       getDislayMedia(!isScreenOn);
     });
   };
+  // send message to server using socket.io and then server sends message to all clients connected to same room
   const sendMessage = (message) => {
     socket.emit("chat-message", message, app.userName);
   };
