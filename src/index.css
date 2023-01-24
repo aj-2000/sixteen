@@ -10,7 +10,7 @@ video {
 }
 
 .videobox {
-  @apply min-w-[32.5%] aspect-[4/3] max-w-[32.5%] bg-transparent relative rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500;
+  @apply min-w-[30.5%] aspect-[4/3] max-w-[30.5%] bg-transparent relative rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500;
 }
 
 .onevideo {
