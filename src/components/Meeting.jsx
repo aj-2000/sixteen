@@ -430,9 +430,13 @@ const MeetingScreen = () => {
       <div className="flex">
         <div
           id="main"
-          className={`w-full h-[calc(100vh-60px)] flex flex-wrap justify-center items-center gap-8 overflow-auto p-8 md:inline-flex`}
+          className={`w-full h-[calc(100vh-60px)] flex flex-wrap justify-center items-center gap-4 overflow-auto p-4 md:inline-flex`}
         >
-          <div className="videobox">
+          <div
+            className={`${
+              app.participants.length > 1 ? "videobox" : "onevideo"
+            }`}
+          >
             <p className="username">{`${app.userName} (You)`}</p>
             <video autoPlay muted ref={localVideoRef}></video>
           </div>

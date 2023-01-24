@@ -67,7 +67,7 @@ const SetUsername = () => {
               </button>
             </div>
           </div>
-          <div className="videobox">
+          <div className="onevideo">
             <video
               className="rounded shadow"
               autoPlay
