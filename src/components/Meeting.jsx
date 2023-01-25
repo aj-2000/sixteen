@@ -118,7 +118,9 @@ const MeetingScreen = () => {
               window.localStream !== null
             ) {
               //if stream is not null send the stream
-              connections[socketListId].addStream(window.localStream);
+              try {
+                connections[socketListId].addStream(window.localStream);
+              } catch (e) {}
             } else {
               //if stream is null create a new blank stream and send it
               let blackSilence = (...args) =>
@@ -339,8 +341,9 @@ const MeetingScreen = () => {
     // sends screen share stream to all clients using webRTC
     for (let id in connections) {
       if (id === socketId) continue;
-
-      connections[id].addStream(window.localStream);
+      try {
+        connections[id].addStream(window.localStream);
+      } catch (e) {}
 
       connections[id].createOffer().then((description) => {
         connections[id]
