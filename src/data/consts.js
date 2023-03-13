@@ -1,7 +1,7 @@
 export const server_url =
   process.env.NODE_ENV === "production"
-    ? "https://sixteen.up.railway.app"
-    : "https://sixteen.up.railway.app";
+    ? "https://sixmeent-backend.onrender.com"
+    : "https://sixmeent-backend.onrender.com";
 export const peerConnectionConfig = {
   iceServers: [
     // { 'urls': 'stun:stun.services.mozilla.com' },
